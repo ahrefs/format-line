@@ -1,0 +1,4 @@
+(executable
+ (public_name ahrefs-whitespace)
+ (name main)
+ (libraries ahrefs_whitespace))

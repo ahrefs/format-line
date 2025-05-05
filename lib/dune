@@ -1,0 +1,3 @@
+(library
+ (name ahrefs_whitespace)
+ (libraries compiler-libs.common astring ocp-indent.lib))
