@@ -1,2 +1,5 @@
-(test
- (name test_ahrefs_whitespace))
+(cram
+ (deps
+  (source_tree ok)
+  (source_tree errors)
+  %{bin:format-line}))

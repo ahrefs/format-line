@@ -1,0 +1,15 @@
+let a = f ~x:y
+
+let ( * ) = Float.mul
+
+let ( *. ) = Int.mul
+
+let ( / ) = Float.div
+
+let ( - ) = Float.div
+
+let a = (-3)
+
+let a = ( ~- 3)
+
+let a = !myref

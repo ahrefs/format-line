@@ -1,11 +1,13 @@
 open Ahrefs_whitespace
 
-let format ~source ~output =
+let format ~debug ~source ~output =
   let lexbuf = Lexing.from_string source in
   let lexer = lexer lexbuf in
-  let output = output_string output in
+  let out_buffer = Buffer.create (String.length source) in
+  let output_f = Buffer.add_string out_buffer in
   let first_token = lexer () in
-  format ~output ~source ~lexer ~previous_token:first_token
+  format ~debug ~output:output_f ~source ~lexer ~previous_token:first_token ;
+  out_buffer |> Buffer.contents |> output_string output
 
 open Cmdliner
 
@@ -17,9 +19,10 @@ let cmd =
     let+ source =
       Arg.(required & pos 0 (some file) None (info ~doc:"input file" []))
     and+ output =
-      Arg.(value & opt (some file) None (info ~doc:"output" ["o"; "output"]))
+      Arg.(value & opt (some string) None (info ~doc:"output" ["o"; "output"]))
     and+ inline =
       Arg.(value & flag (info ~doc:"inline formatting" ["i"; "inline"]))
+      and+ debug = Arg.(value & flag (info ~doc:"debug mode" ["g"; "debug"]))
     and+ format = Term.const format in
     let source_content = In_channel.(with_open_bin source input_all) in
     let* output =
@@ -33,7 +36,7 @@ let cmd =
       | None, false ->
           Ok stdout
     in
-    Ok (format ~source:source_content ~output)
+    Ok (format ~debug ~source:source_content ~output)
   in
   Cmd.v (Cmd.info "format-line") term
 

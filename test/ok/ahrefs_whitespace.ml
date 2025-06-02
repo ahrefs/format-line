@@ -285,7 +285,7 @@ let separated_by_withespace (tok : Parser.token) (tok' : Parser.token) =
       true
   | _, (RPAREN | SEMI | COMMA | DOT | RBRACKET | EOL | EOF)
   | (LPAREN | DOT | TILDE | LBRACKET | PREFIXOP _ | BANG), _
-  | LABEL _, (LPAREN | LIDENT _ (* _ ? *)) ->
+  | LABEL _, LIDENT _ ->
       false
   | _ ->
       true
