@@ -1,4 +1,4 @@
 (executable
- (public_name ahrefs-whitespace)
+ (public_name format-line)
  (name main)
- (libraries ahrefs_whitespace))
+ (libraries ahrefs_whitespace cmdliner))
