@@ -19,8 +19,8 @@ let name_of_token (token : Parser.token) =
       "VAL"
   | UNDERSCORE ->
       "UNDERSCORE"
-  | UIDENT _ ->
-      "UIDENT"
+  | UIDENT s ->
+      sprintf "UIDENT %S" s
   | TYPE ->
       "TYPE"
   | TRY ->
@@ -109,10 +109,10 @@ let name_of_token (token : Parser.token) =
       "MATCH"
   | LPAREN ->
       "LPAREN"
-  | LIDENT _ ->
-      "LIDENT"
-  | LETOP _ ->
-      "LETOP"
+  | LIDENT s ->
+      sprintf "LIDENT %S" s
+  | LETOP s ->
+      sprintf "LETOP %S" s
   | LET ->
       "LET"
   | LESSMINUS ->
@@ -207,8 +207,8 @@ let name_of_token (token : Parser.token) =
       "EFFECT"
   | DOWNTO ->
       "DOWNTO"
-  | DOTOP _ ->
-      "DOTOP"
+  | DOTOP s ->
+      sprintf "DOTOP %S" s
   | DOTDOT ->
       "DOTDOT"
   | DOT ->
@@ -235,8 +235,8 @@ let name_of_token (token : Parser.token) =
       "COLON"
   | CLASS ->
       "CLASS"
-  | CHAR _ ->
-      "CHAR"
+  | CHAR c ->
+      sprintf "CHAR '%c'" c
   | BEGIN ->
       "BEGIN"
   | BARRBRACKET ->
@@ -253,8 +253,8 @@ let name_of_token (token : Parser.token) =
       "ASSERT"
   | AS ->
       "AS"
-  | ANDOP _ ->
-      "ANDOP"
+  | ANDOP s ->
+      sprintf "ANDOP %S" s
   | AND ->
       "AND"
   | AMPERSAND ->
@@ -262,7 +262,7 @@ let name_of_token (token : Parser.token) =
   | AMPERAMPER ->
       "AMPERAMPER"
 
-let separated_by_withespace (tok : Parser.token) (tok' : Parser.token) =
+let separated_by_whitespace (tok : Parser.token) (tok' : Parser.token) =
   match (tok, tok') with
   | ( LPAREN
     , ( STAR
@@ -272,7 +272,9 @@ let separated_by_withespace (tok : Parser.token) (tok' : Parser.token) =
       | INFIXOP1 _
       | INFIXOP2 _
       | INFIXOP3 _
-      | INFIXOP4 _ ) )
+      | INFIXOP4 _
+      | LETOP _
+      | ANDOP _ ) )
   | ( ( STAR
       | PLUS
       | MINUS
@@ -280,12 +282,14 @@ let separated_by_withespace (tok : Parser.token) (tok' : Parser.token) =
       | INFIXOP1 _
       | INFIXOP2 _
       | INFIXOP3 _
-      | INFIXOP4 _ )
+      | INFIXOP4 _
+      | LETOP _
+      | ANDOP _ )
     , RPAREN ) ->
       true
   | _, (RPAREN | SEMI | COMMA | DOT | RBRACKET | EOL | EOF)
-  | (LPAREN | DOT | TILDE | LBRACKET | PREFIXOP _ | BANG), _
-  | LABEL _, (LPAREN | LIDENT _ (* _ ? *)) ->
+  | (LPAREN | DOT | TILDE | LBRACKET | PREFIXOP _ | BANG | LABEL _ | DOTOP _), _
+    ->
       false
   | _ ->
       true
@@ -328,7 +332,7 @@ let rec format ~debug ~output ~source ~lexer ~previous_token =
   in
   let whitespaces, _ = whitespace_and_other (string_of_token ~source token) in
   let should_separate_by_withespace =
-    separated_by_withespace previous_token.token token.token
+    separated_by_whitespace previous_token.token token.token
   in
   let has_line_break =
     match (previous_token.token, token.token) with
@@ -350,3 +354,15 @@ let rec format ~debug ~output ~source ~lexer ~previous_token =
       ()
   | _ ->
       format ~debug ~output ~source ~lexer ~previous_token:token
+
+let format ~debug ~output ~source ~lexer =
+  try
+    let first_token = lexer () in
+    format ~debug ~output ~source ~lexer ~previous_token:first_token ;
+    Ok ()
+  with Lexer.Error _ as e -> (
+    match Location.error_of_exn e with
+    | Some `Already_displayed | None ->
+        assert false
+    | Some (`Ok report) ->
+        Error (Format.asprintf "%a" Location.print_report report) )

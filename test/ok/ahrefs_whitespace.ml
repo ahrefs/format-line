@@ -262,7 +262,7 @@ let name_of_token (token : Parser.token) =
   | AMPERAMPER ->
       "AMPERAMPER"
 
-let separated_by_withespace (tok : Parser.token) (tok' : Parser.token) =
+let separated_by_whitespace (tok : Parser.token) (tok' : Parser.token) =
   match (tok, tok') with
   | ( LPAREN
     , ( STAR
@@ -272,7 +272,8 @@ let separated_by_withespace (tok : Parser.token) (tok' : Parser.token) =
       | INFIXOP1 _
       | INFIXOP2 _
       | INFIXOP3 _
-      | INFIXOP4 _ ) )
+      | INFIXOP4 _
+      | LETOP _ ) )
   | ( ( STAR
       | PLUS
       | MINUS
@@ -280,11 +281,12 @@ let separated_by_withespace (tok : Parser.token) (tok' : Parser.token) =
       | INFIXOP1 _
       | INFIXOP2 _
       | INFIXOP3 _
-      | INFIXOP4 _ )
+      | INFIXOP4 _
+      | LETOP _ )
     , RPAREN ) ->
       true
   | _, (RPAREN | SEMI | COMMA | DOT | RBRACKET | EOL | EOF)
-  | (LPAREN | DOT | TILDE | LBRACKET | PREFIXOP _ | BANG), _
+  | (LPAREN | DOT | TILDE | LBRACKET | PREFIXOP _ | BANG | LABEL), _
   | LABEL _, LIDENT _ ->
       false
   | _ ->
@@ -328,7 +330,7 @@ let rec format ~debug ~output ~source ~lexer ~previous_token =
   in
   let whitespaces, _ = whitespace_and_other (string_of_token ~source token) in
   let should_separate_by_withespace =
-    separated_by_withespace previous_token.token token.token
+    separated_by_whitespace previous_token.token token.token
   in
   let has_line_break =
     match (previous_token.token, token.token) with
