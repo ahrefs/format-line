@@ -373,6 +373,35 @@ Check for syntax errors with ocamlformat
   LIDENT "g"
   LIDENT "arg1"
   LIDENT "arg2"
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "v"
+  EQUAL
+  LPAREN
+  LIDENT "f"
+  TILDE
+  LIDENT "a"
+  COLON
+  QUOTE
+  LIDENT "a"
+  LIDENT "t"
+  RPAREN
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "v"
+  EQUAL
+  LPAREN
+  LIDENT "f"
+  LABEL "a"
+  LIDENT "b"
+  COLON
+  QUOTE
+  LIDENT "a"
+  LIDENT "t"
+  RPAREN
+  EOL
   EOF
 Check that the output has no syntax error
   $ ocamlformat --enable-outside-detected-project test_out.ml > ignore
@@ -445,6 +474,12 @@ Check that the output has no syntax error
   let a = obj#meth
   
   let f ?arg1 ?arg2 = g arg1 arg2
+  
+  let v = (f ~a : 'a t)
+  
+  let v = (f ~a:b: 'a t)
+
+Check that error messages are nice
   $ dune exec format-line -- errors/string.ml -g
   LIDENT "mystring"
   EQUAL

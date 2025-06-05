@@ -66,3 +66,7 @@ end
 let a = obj#meth
 
 let f ?arg1 ?arg2 = g arg1 arg2
+
+let v = (f ~a : 'a t)
+
+let v = (f ~a:b : 'a t)

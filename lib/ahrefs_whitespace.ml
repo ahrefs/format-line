@@ -344,73 +344,74 @@ let separated_by_whitespace ~source (previous_toks : positionned_token list)
   match (previous_toks, tok') with
   | [], _ ->
       false
-  | {token= LIDENT _; _} :: {token= LIDENT ("val" | "let"); _} :: _, COLON ->
+  | {token= LIDENT _; _} :: {token= LIDENT ("val" | "let"); _} :: _, COLON
+  | {token= LIDENT _; _} :: {token= TILDE; _} :: _, COLON ->
       true
   | ({token; _} as ptok) :: _, _ ->
-      has_to_be_separated ~source ptok ptok'
-      || begin
-           match (token, tok') with
-           | _ when type_quantifier_dot previous_toks ->
-               true
-           | ( LPAREN
-             , ( STAR
-               | PLUS
-               | MINUS
-               | INFIXOP0 _
-               | INFIXOP1 _
-               | INFIXOP2 _
-               | INFIXOP3 _
-               | INFIXOP4 _
-               | LETOP _
-               | ANDOP _ ) )
-           | ( ( STAR
-               | PLUS
-               | MINUS
-               | INFIXOP0 _
-               | INFIXOP1 _
-               | INFIXOP2 _
-               | INFIXOP3 _
-               | INFIXOP4 _
-               | LETOP _
-               | ANDOP _ )
-             , RPAREN )
-           | MINUSGREATER, DOT
-           | LBRACKET, BAR
-           | GREATER, RBRACKET ->
-               true
-           | ( _
-             , ( RPAREN
-               | SEMI
-               | COMMA
-               | DOT
-               | RBRACKET
-               | PERCENT
-               | COLON
-               | HASH
-               | EOL
-               | EOF ) )
-           | ( ( LPAREN
-               | DOT
-               | TILDE
-               | LBRACKET
-               | PREFIXOP _
-               | BANG
-               | LABEL _
-               | DOTOP _
-               | BACKQUOTE
-               | PERCENT
-               | LBRACKETPERCENT
-               | LBRACKETATATAT
-               | LBRACKETATAT
-               | LBRACKETAT
-               | QUOTE
-               | HASH
-               | QUESTION )
-             , _ ) ->
-               false
-           | _ ->
-               true
-         end
+      if has_to_be_separated ~source ptok ptok' then true
+      else begin
+        match (token, tok') with
+        | _ when type_quantifier_dot previous_toks ->
+            true
+        | ( LPAREN
+          , ( STAR
+            | PLUS
+            | MINUS
+            | INFIXOP0 _
+            | INFIXOP1 _
+            | INFIXOP2 _
+            | INFIXOP3 _
+            | INFIXOP4 _
+            | LETOP _
+            | ANDOP _ ) )
+        | ( ( STAR
+            | PLUS
+            | MINUS
+            | INFIXOP0 _
+            | INFIXOP1 _
+            | INFIXOP2 _
+            | INFIXOP3 _
+            | INFIXOP4 _
+            | LETOP _
+            | ANDOP _ )
+          , RPAREN )
+        | MINUSGREATER, DOT
+        | LBRACKET, BAR
+        | GREATER, RBRACKET ->
+            true
+        | ( _
+          , ( RPAREN
+            | SEMI
+            | COMMA
+            | DOT
+            | RBRACKET
+            | PERCENT
+            | COLON
+            | HASH
+            | EOL
+            | EOF ) )
+        | ( ( LPAREN
+            | DOT
+            | TILDE
+            | LBRACKET
+            | PREFIXOP _
+            | BANG
+            | LABEL _
+            | DOTOP _
+            | BACKQUOTE
+            | PERCENT
+            | LBRACKETPERCENT
+            | LBRACKETATATAT
+            | LBRACKETATAT
+            | LBRACKETAT
+            | QUOTE
+            | HASH
+            | QUESTION )
+          , _ ) ->
+            false
+        | _ ->
+            true
+      end
 
 let whitespace_and_other str =
   let rec loop whitespaces i =
