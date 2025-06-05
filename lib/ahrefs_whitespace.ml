@@ -35,8 +35,8 @@ let name_of_token (token : Parser.token) =
       "THEN"
   | STRUCT ->
       "STRUCT"
-  | STRING _ ->
-      "STRING"
+  | STRING (s, _loc, _sopt) ->
+      sprintf "STRING %S" s
   | STAR ->
       "STAR"
   | SIG ->
@@ -262,37 +262,155 @@ let name_of_token (token : Parser.token) =
   | AMPERAMPER ->
       "AMPERAMPER"
 
-let separated_by_whitespace (tok : Parser.token) (tok' : Parser.token) =
+(** compare token but ignore locations *)
+let compare_tok (tok : Parser.token) (tok' : Parser.token) =
+  let ( let$ ) i f = match i with 0 -> f () | i -> i in
   match (tok, tok') with
-  | ( LPAREN
-    , ( STAR
-      | PLUS
-      | MINUS
-      | INFIXOP0 _
-      | INFIXOP1 _
-      | INFIXOP2 _
-      | INFIXOP3 _
-      | INFIXOP4 _
-      | LETOP _
-      | ANDOP _ ) )
-  | ( ( STAR
-      | PLUS
-      | MINUS
-      | INFIXOP0 _
-      | INFIXOP1 _
-      | INFIXOP2 _
-      | INFIXOP3 _
-      | INFIXOP4 _
-      | LETOP _
-      | ANDOP _ )
-    , RPAREN ) ->
-      true
-  | _, (RPAREN | SEMI | COMMA | DOT | RBRACKET | EOL | EOF)
-  | (LPAREN | DOT | TILDE | LBRACKET | PREFIXOP _ | BANG | LABEL _ | DOTOP _), _
-    ->
+  | COMMENT (s, _loc), COMMENT (s', _loc') ->
+      String.compare s s'
+  | STRING (s, _loc, delim), STRING (s', _loc', delim') ->
+      let$ () = String.compare s s' in
+      Option.compare String.compare delim delim'
+  | ( QUOTED_STRING_ITEM (s, _loc, s2, _loc2, s_opt)
+    , QUOTED_STRING_ITEM (s', _loc', s2', _loc2', s_opt') ) ->
+      let$ () = String.compare s s' in
+      let$ () = String.compare s2 s2' in
+      Option.compare String.compare s_opt s_opt'
+  | ( QUOTED_STRING_EXPR (s, _loc, s2, _loc2, s_opt)
+    , QUOTED_STRING_EXPR (s', _loc', s2', _loc2', s_opt') ) ->
+      let$ () = String.compare s s' in
+      let$ () = String.compare s2 s2' in
+      Option.compare String.compare s_opt s_opt'
+  | _ ->
+      compare tok tok'
+
+let string_of_token ~source {token= _; startpos; endpos} =
+  let r =
+    String.(
+      source
+      |> sub ~start:startpos.pos_cnum ~stop:endpos.pos_cnum
+      |> Sub.to_string )
+  in
+  r
+
+(** [has_to_be_separated tok tok'] is true if :
+    - [s] and [s'] are the string corresponding to [tok] and [tok']
+    - Lexing [s ^ s'] gives tokens that are different from [tok; tok']
+    This means that we are forced to display `[s ^ " " ^ s'], for correctness. *)
+let has_to_be_separated ~source (tok : positionned_token)
+    (tok' : positionned_token) =
+  match tok'.token with
+  | EOF | EOL ->
       false
   | _ ->
+      let string_of_tok = String.trim (string_of_token ~source tok) in
+      let string_of_tok' = String.trim (string_of_token ~source tok') in
+      let text = string_of_tok ^ string_of_tok' in
+      Location.formatter_for_warnings :=
+        Format.make_formatter (fun _ _ _ -> ()) (fun () -> ()) ;
+      let lexbuf = Lexing.from_string text in
+      begin
+        try
+          let new_tok = Lexer.token lexbuf in
+          let new_tok' = Lexer.token lexbuf in
+          (* printf "text:%S toks: [%s; %s] new_toks: [%s; %s]\n%!" text
+            (name_of_token tok.token) (name_of_token tok'.token)
+            (name_of_token new_tok) (name_of_token new_tok') ; *)
+          List.compare compare_tok [new_tok; new_tok'] [tok.token; tok'.token]
+          <> 0
+        with Lexer.Error _ -> true
+      end
+
+(** [true] when [previous_token] is [[DOT; LIDENT _; ...; LIDENT _, LIDENT "type"; ...]] which corresponds to Ocaml [type a b c.]*)
+let type_quantifier_dot (previous_tokens : positionned_token list) =
+  match previous_tokens with
+  | {token= DOT; _} :: {token= LIDENT n; _} :: previous_tokens when n <> "type"
+    ->
+      let rec loop = function
+        | {token= Parser.LIDENT "type"; _} :: _ ->
+            true
+        | {token= LIDENT _; _} :: previous_tokens ->
+            loop previous_tokens
+        | _ ->
+            false
+      in
+      loop previous_tokens
+  | _ ->
+      false
+
+let separated_by_whitespace ~source (previous_toks : positionned_token list)
+    (ptok' : positionned_token) =
+  let tok' = ptok'.token in
+  match (previous_toks, tok') with
+  | [], _ ->
+      false
+  | {token= LIDENT _; _} :: {token= LIDENT ("val" | "let"); _} :: _, COLON ->
       true
+  | ({token; _} as ptok) :: _, _ ->
+      has_to_be_separated ~source ptok ptok'
+      || begin
+           match (token, tok') with
+           | _ when type_quantifier_dot previous_toks ->
+               true
+           | ( LPAREN
+             , ( STAR
+               | PLUS
+               | MINUS
+               | INFIXOP0 _
+               | INFIXOP1 _
+               | INFIXOP2 _
+               | INFIXOP3 _
+               | INFIXOP4 _
+               | LETOP _
+               | ANDOP _ ) )
+           | ( ( STAR
+               | PLUS
+               | MINUS
+               | INFIXOP0 _
+               | INFIXOP1 _
+               | INFIXOP2 _
+               | INFIXOP3 _
+               | INFIXOP4 _
+               | LETOP _
+               | ANDOP _ )
+             , RPAREN )
+           | MINUSGREATER, DOT
+           | LBRACKET, BAR
+           | GREATER, RBRACKET ->
+               true
+           | ( _
+             , ( RPAREN
+               | SEMI
+               | COMMA
+               | DOT
+               | RBRACKET
+               | PERCENT
+               | COLON
+               | HASH
+               | EOL
+               | EOF ) )
+           | ( ( LPAREN
+               | DOT
+               | TILDE
+               | LBRACKET
+               | PREFIXOP _
+               | BANG
+               | LABEL _
+               | DOTOP _
+               | BACKQUOTE
+               | PERCENT
+               | LBRACKETPERCENT
+               | LBRACKETATATAT
+               | LBRACKETATAT
+               | LBRACKETAT
+               | QUOTE
+               | HASH
+               | QUESTION )
+             , _ ) ->
+               false
+           | _ ->
+               true
+         end
 
 let whitespace_and_other str =
   let rec loop whitespaces i =
@@ -306,23 +424,14 @@ let whitespace_and_other str =
   ( whitespaces |> List.rev_map String.of_char |> String.concat
   , String.sub ~start:i str |> String.Sub.to_string )
 
-let lexer lexbuf =
- fun () ->
+let lexer lexbuf () =
   let startpos = Lexing.lexeme_end_p lexbuf in
   let token = Lexer.token_with_comments lexbuf in
   let endpos = Lexing.lexeme_end_p lexbuf in
   {token; startpos; endpos}
 
-let string_of_token ~source {token= _; startpos; endpos} =
-  let r =
-    String.(
-      source
-      |> sub ~start:startpos.pos_cnum ~stop:endpos.pos_cnum
-      |> Sub.to_string )
-  in
-  r
-
-let rec format ~debug ~output ~source ~lexer ~previous_token =
+let rec format ~debug ~output ~source ~lexer ~previous_token ~previous_tokens =
+  let previous_tokens = previous_token :: previous_tokens in
   let token = lexer () in
   if debug then print_endline (name_of_token token.token) ;
   let str_prev_tok =
@@ -332,7 +441,7 @@ let rec format ~debug ~output ~source ~lexer ~previous_token =
   in
   let whitespaces, _ = whitespace_and_other (string_of_token ~source token) in
   let should_separate_by_withespace =
-    separated_by_whitespace previous_token.token token.token
+    separated_by_whitespace ~source previous_tokens token
   in
   let has_line_break =
     match (previous_token.token, token.token) with
@@ -354,11 +463,13 @@ let rec format ~debug ~output ~source ~lexer ~previous_token =
       ()
   | _ ->
       format ~debug ~output ~source ~lexer ~previous_token:token
+        ~previous_tokens
 
 let format ~debug ~output ~source ~lexer =
   try
     let first_token = lexer () in
-    format ~debug ~output ~source ~lexer ~previous_token:first_token ;
+    format ~debug ~output ~source ~lexer ~previous_token:first_token
+      ~previous_tokens:[] ;
     Ok ()
   with Lexer.Error _ as e -> (
     match Location.error_of_exn e with

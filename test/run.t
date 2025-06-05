@@ -1,4 +1,6 @@
-  $ dune exec format-line -- ok/test.ml -g
+Check for syntax errors with ocamlformat
+  $ ocamlformat --enable-outside-detected-project ok/test.ml > ignore
+  $ dune exec format-line -- -g ok/test.ml -o test_out.ml
   LIDENT "a"
   EQUAL
   LIDENT "f"
@@ -116,7 +118,265 @@
   UIDENT "Bytes"
   DOT
   LIDENT "get"
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "a"
+  EQUAL
+  EOL
+  LIDENT "match"
+  LIDENT "gadt"
+  LIDENT "with"
+  EOL
+  BAR
+  UIDENT "A"
+  MINUSGREATER
+  STRING "A"
+  EOL
+  BAR
+  UNDERSCORE
+  MINUSGREATER
+  DOT
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "a"
+  EQUAL
+  BACKQUOTE
+  UIDENT "A"
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "a"
+  EQUAL
+  EOL
+  LIDENT "let"
+  PERCENT
+  LIDENT "lwt"
+  LIDENT "a"
+  EQUAL
+  UIDENT "Lwt"
+  DOT
+  LIDENT "return"
+  INT
+  LIDENT "in"
+  EOL
+  LIDENT "a"
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "f"
+  COLON
+  LIDENT "type"
+  LIDENT "a"
+  DOT
+  OPTLABEL
+  UNDERSCORE
+  MINUSGREATER
+  LIDENT "a"
+  LIDENT "kind"
+  MINUSGREATER
+  LIDENT "unit"
+  MINUSGREATER
+  LIDENT "a"
+  LIDENT "t"
+  EQUAL
+  LIDENT "f"
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "f"
+  COLON
+  LIDENT "type"
+  LIDENT "a"
+  DOT
+  LIDENT "locale"
+  COLON
+  UNDERSCORE
+  MINUSGREATER
+  LIDENT "a"
+  LIDENT "kind"
+  MINUSGREATER
+  LIDENT "unit"
+  MINUSGREATER
+  LIDENT "a"
+  LIDENT "t"
+  EQUAL
+  LIDENT "f"
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "f"
+  COLON
+  LIDENT "type"
+  LIDENT "a"
+  LIDENT "b"
+  LIDENT "c"
+  LIDENT "d"
+  DOT
+  LIDENT "locale"
+  COLON
+  UNDERSCORE
+  MINUSGREATER
+  LIDENT "a"
+  LIDENT "kind"
+  MINUSGREATER
+  LIDENT "unit"
+  MINUSGREATER
+  LIDENT "a"
+  LIDENT "t"
+  EQUAL
+  LIDENT "f"
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "a"
+  EQUAL
+  LPAREN
+  UIDENT "Typ"
+  DOT
+  LIDENT "alias"
+  LBRACKETPERCENT
+  LIDENT "type"
+  COLON
+  LESS
+  DOTDOT
+  GREATER
+  RBRACKET
+  LIDENT "t"
+  RPAREN
+  EOL
+  EOL
+  LIDENT "type"
+  LIDENT "t"
+  EQUAL
+  LBRACKETGREATER
+  BACKQUOTE
+  UIDENT "A"
+  LIDENT "of"
+  LBRACKET
+  BAR
+  LIDENT "t"
+  RBRACKET
+  RBRACKET
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "a"
+  EQUAL
+  LIDENT "func"
+  LABEL "arg"
+  STRING "my string"
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "a"
+  EQUAL
+  LIDENT "func"
+  LABEL "arg"
+  STRING "my string"
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "l"
+  EQUAL
+  LBRACKETPERCENT
+  LIDENT "ext"
+  STRING "aaaa"
+  RBRACKET
+  EOL
+  EOL
+  LBRACKETATATAT
+  LIDENT "attr"
+  STRING "my attr"
+  RBRACKET
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "a"
+  EQUAL
+  LIDENT "f"
+  LBRACKETATAT
+  LIDENT "attr"
+  STRING "my attr"
+  RBRACKET
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "a"
+  EQUAL
+  LIDENT "begin"
+  LBRACKETAT
+  LIDENT "attr"
+  STRING "my attr"
+  RBRACKET
+  LIDENT "f"
+  LIDENT "end"
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "f"
+  QUESTION
+  LPAREN
+  LIDENT "optionnal"
+  EQUAL
+  LIDENT "default"
+  RPAREN
+  EQUAL
+  LIDENT "g"
+  LIDENT "optionnal"
+  EOL
+  EOL
+  LIDENT "module"
+  LIDENT "type"
+  UIDENT "S"
+  EQUAL
+  LIDENT "sig"
+  EOL
+  LIDENT "val"
+  LIDENT "f"
+  COLON
+  LIDENT "arg"
+  COLON
+  LIDENT "t"
+  MINUSGREATER
+  LIDENT "unit"
+  EOL
+  EOL
+  LIDENT "type"
+  QUOTE
+  LIDENT "a"
+  LIDENT "t"
+  EQUAL
+  QUOTE
+  LIDENT "a"
+  LIDENT "list"
+  EOL
+  LIDENT "end"
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "a"
+  EQUAL
+  LIDENT "obj"
+  HASH
+  LIDENT "meth"
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "f"
+  QUESTION
+  LIDENT "arg1"
+  QUESTION
+  LIDENT "arg2"
+  EQUAL
+  LIDENT "g"
+  LIDENT "arg1"
+  LIDENT "arg2"
   EOF
+Check that the output has no syntax error
+  $ ocamlformat --enable-outside-detected-project test_out.ml > ignore
+  $ cat test_out.ml
   let a = f ~x:y
   
   let a = f ~x y
@@ -140,6 +400,51 @@
   let ( and+ ) = Cmdliner.Term.Arg.( and+ )
   
   let (.%[]) = Bytes.get
+  
+  let a =
+    match gadt with
+    | A -> "A"
+    | _ -> .
+  
+  let a = `A
+  
+  let a =
+    let%lwt a = Lwt.return 1 in
+    a
+  
+  let f : type a. ?locale: _ -> a kind -> unit -> a t = f
+  
+  let f : type a. locale: _ -> a kind -> unit -> a t = f
+  
+  let f : type a b c d. locale: _ -> a kind -> unit -> a t = f
+  
+  let a = (Typ.alias [%type: < .. > ] t)
+  
+  type t = [> `A of [ | t]]
+  
+  let a = func ~arg:"my string"
+  
+  let a = func ~arg:{|my string|}
+  
+  let l = [%ext {|aaaa|}]
+  
+  [@@@attr "my attr"]
+  
+  let a = f [@@attr "my attr"]
+  
+  let a = begin [@attr "my attr"] f end
+  
+  let f ?(optionnal = default) = g optionnal
+  
+  module type S = sig
+    val f : arg: t -> unit
+  
+    type 'a t = 'a list
+  end
+  
+  let a = obj#meth
+  
+  let f ?arg1 ?arg2 = g arg1 arg2
   $ dune exec format-line -- errors/string.ml -g
   LIDENT "mystring"
   EQUAL
@@ -159,7 +464,15 @@
   5c5
   <   {token: Parser.token; startpos: Lexing.position; endpos: Lexing.position}
   ---
-  >   { token : Parser.token; startpos : Lexing.position; endpos : Lexing.position }
+  >   { token: Parser.token; startpos: Lexing.position; endpos: Lexing.position }
+  8c8
+  < let name_of_token (token : Parser.token) =
+  ---
+  > let name_of_token (token: Parser.token) =
+  265c265
+  < let separated_by_whitespace (tok : Parser.token) (tok' : Parser.token) =
+  ---
+  > let separated_by_whitespace (tok: Parser.token) (tok': Parser.token) =
   267,268c267,268
   <   | ( LPAREN
   <     , ( STAR
@@ -259,6 +572,8 @@
                Error: String literal not terminated
                
   [123]
+
+$   [123]
   $ cat files/string.ml
   let mystring = "start
 
