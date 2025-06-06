@@ -60,19 +60,15 @@ Check for syntax errors with ocamlformat
   LIDENT "let"
   LIDENT "a"
   EQUAL
-  LPAREN
   MINUS
   INT
-  RPAREN
   EOL
   EOL
   LIDENT "let"
   LIDENT "a"
   EQUAL
-  LPAREN
   PREFIXOP
   INT
-  RPAREN
   EOL
   EOL
   LIDENT "let"
@@ -123,16 +119,12 @@ Check for syntax errors with ocamlformat
   LIDENT "let"
   LIDENT "a"
   EQUAL
-  EOL
   LIDENT "match"
   LIDENT "gadt"
   LIDENT "with"
-  EOL
-  BAR
   UIDENT "A"
   MINUSGREATER
   STRING "A"
-  EOL
   BAR
   UNDERSCORE
   MINUSGREATER
@@ -232,7 +224,6 @@ Check for syntax errors with ocamlformat
   LIDENT "let"
   LIDENT "a"
   EQUAL
-  LPAREN
   UIDENT "Typ"
   DOT
   LIDENT "alias"
@@ -244,7 +235,6 @@ Check for syntax errors with ocamlformat
   GREATER
   RBRACKET
   LIDENT "t"
-  RPAREN
   EOL
   EOL
   LIDENT "type"
@@ -305,12 +295,15 @@ Check for syntax errors with ocamlformat
   LIDENT "let"
   LIDENT "a"
   EQUAL
+  EOL
   LIDENT "begin"
   LBRACKETAT
   LIDENT "attr"
   STRING "my attr"
   RBRACKET
+  EOL
   LIDENT "f"
+  EOL
   LIDENT "end"
   EOL
   EOL
@@ -402,6 +395,39 @@ Check for syntax errors with ocamlformat
   LIDENT "t"
   RPAREN
   EOL
+  EOL
+  LIDENT "let"
+  LIDENT "a"
+  EQUAL
+  LIDENT "match"
+  LIDENT "x"
+  LIDENT "with"
+  HASH
+  UIDENT "F"
+  DOT
+  LIDENT "t"
+  LIDENT "as"
+  LIDENT "e"
+  MINUSGREATER
+  LIDENT "f"
+  LIDENT "e"
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "a"
+  EQUAL
+  LBRACKET
+  RBRACKET
+  EOL
+  EOL
+  LIDENT "let"
+  LIDENT "a"
+  EQUAL
+  LBRACKET
+  LIDENT "a"
+  SEMI
+  LIDENT "b"
+  RBRACKET
   EOF
 Check that the output has no syntax error
   $ ocamlformat --enable-outside-detected-project test_out.ml > ignore
@@ -418,9 +444,9 @@ Check that the output has no syntax error
   
   let ( - ) = Float.div
   
-  let a = ( - 3)
+  let a = - 3
   
-  let a = (~-3)
+  let a = ~-3
   
   let a = !myref
   
@@ -430,10 +456,7 @@ Check that the output has no syntax error
   
   let (.%[]) = Bytes.get
   
-  let a =
-    match gadt with
-    | A -> "A"
-    | _ -> .
+  let a = match gadt with A -> "A" | _ -> .
   
   let a = `A
   
@@ -447,21 +470,24 @@ Check that the output has no syntax error
   
   let f : type a b c d. locale: _ -> a kind -> unit -> a t = f
   
-  let a = (Typ.alias [%type: < .. > ] t)
+  let a = Typ.alias [%type: < .. > ] t
   
-  type t = [> `A of [ | t]]
+  type t = [> `A of [ | t ] ]
   
   let a = func ~arg:"my string"
   
   let a = func ~arg:{|my string|}
   
-  let l = [%ext {|aaaa|}]
+  let l = [%ext {|aaaa|} ]
   
-  [@@@attr "my attr"]
+  [@@@attr "my attr" ]
   
-  let a = f [@@attr "my attr"]
+  let a = f [@@attr "my attr" ]
   
-  let a = begin [@attr "my attr"] f end
+  let a =
+    begin [@attr "my attr" ]
+      f
+    end
   
   let f ?(optionnal = default) = g optionnal
   
@@ -478,6 +504,12 @@ Check that the output has no syntax error
   let v = (f ~a : 'a t)
   
   let v = (f ~a:b: 'a t)
+  
+  let a = match x with#F.t as e -> f e
+  
+  let a = []
+  
+  let a = [ a; b ]
 
 Check that error messages are nice
   $ dune exec format-line -- errors/string.ml -g
@@ -526,6 +558,12 @@ Check that error messages are nice
   ---
   >       | LETOP _)
   >     , RPAREN) ->
+  299,300c299,300
+  <       let ch = str.[i] in
+  <       if Char.Ascii.is_white str.[i] then loop (ch :: whitespaces) (i + 1)
+  ---
+  >       let ch = str.[ i ] in
+  >       if Char.Ascii.is_white str.[ i ] then loop (ch :: whitespaces) (i + 1)
   304,305c304,305
   <   ( whitespaces |> List.rev_map String.of_char |> String.concat
   <   , String.sub ~start:i str |> String.Sub.to_string )

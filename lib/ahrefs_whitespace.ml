@@ -377,23 +377,14 @@ let separated_by_whitespace ~source (previous_toks : positionned_token list)
           , RPAREN )
         | MINUSGREATER, DOT
         | LBRACKET, BAR
-        | GREATER, RBRACKET ->
+        | GREATER, RBRACKET
+        | BAR, HASH ->
             true
-        | ( _
-          , ( RPAREN
-            | SEMI
-            | COMMA
-            | DOT
-            | RBRACKET
-            | PERCENT
-            | COLON
-            | HASH
-            | EOL
-            | EOF ) )
+        | LBRACKET, RBRACKET
+        | _, (RPAREN | SEMI | COMMA | DOT | PERCENT | COLON | HASH | EOL | EOF)
         | ( ( LPAREN
             | DOT
             | TILDE
-            | LBRACKET
             | PREFIXOP _
             | BANG
             | LABEL _
